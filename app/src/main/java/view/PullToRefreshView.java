@@ -139,6 +139,8 @@ public class PullToRefreshView extends ViewGroup {
                   for (int i = 0; i < getChildCount(); i++) {
                         View child = getChildAt(i);
                         if (child != mRefreshView) {
+
+
                               mTarget = child;
                               mTargetPaddingBottom = mTarget.getPaddingBottom();
                               mTargetPaddingLeft = mTarget.getPaddingLeft();
