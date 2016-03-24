@@ -33,7 +33,7 @@ public class PullToRefreshView extends ViewGroup {
       private static final float DRAG_RATE = 0.65f;
       private static final float DRAG_RATE_INSIDE = 0.3f;
       public static final int STYLE_SUN = 0;
-      
+
       private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
       private static final int DRAG_MAX_DISTANCE = 180;
       private int mTouchSlop;
@@ -46,6 +46,8 @@ public class PullToRefreshView extends ViewGroup {
       private int mTargetPaddingBottom;
       private int mTargetPaddingRight;
       private int mTargetPaddingLeft;
+
+      
 
       /**
        * being used in onTouchEvent \ onInteceptTouchEvent
