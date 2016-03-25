@@ -44,7 +44,7 @@ public class PullToRefreshView extends ViewGroup {
 
       private int mTargetPaddingTop;
 
-      
+
       private int mTargetPaddingBottom;
 
 
