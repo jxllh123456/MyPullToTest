@@ -9,8 +9,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.view.animation.Transformation;
 import android.widget.AbsListView;
 import android.widget.ImageView;
 
@@ -36,6 +38,8 @@ public class PullToRefreshView extends ViewGroup {
 
       private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
       private static final int DRAG_MAX_DISTANCE = 180;
+
+      private static final int ANIMATE_TO_START_DURATION = 1000;
       private int mTouchSlop;
       private int mTotalDragDistance;
 
@@ -173,7 +177,7 @@ public class PullToRefreshView extends ViewGroup {
             switch (ev.getAction()) {
 
                   case MotionEvent.ACTION_DOWN:
-                        setTargetOffsetTop(0, true);
+                        setTargetOffsetTop(0, true, false);
                         mIsBeingDragged = false;
                         downX = (int) ev.getX();
                         downY = (int) ev.getY();
@@ -193,6 +197,7 @@ public class PullToRefreshView extends ViewGroup {
 
       private int mSumY;
       private int mLastY;
+      private int drawableHeight;
 
       @Override
       public boolean onTouchEvent(MotionEvent event) {
@@ -210,22 +215,33 @@ public class PullToRefreshView extends ViewGroup {
                         //实际上没有用到
                         mBaseRefreshView.setPercent(diffY * DRAG_RATE_INSIDE, true);
                         //改变mTop,三目运算符的意思是:如果大于一定的距离就不再能拖动
-                        int drawableHeight = (int) (getMeasuredWidth() * 0.35f);
-                      //  Log.e("drawableHeight", drawableHeight + "::::" + diffY);
+                        drawableHeight = (int) (getMeasuredWidth() * 0.35f);
+                        //  Log.e("drawableHeight", drawableHeight + "::::" + diffY);
                         if (mSumY > drawableHeight) {
                               diffY = 0;
                         }
-                        setTargetOffsetTop(diffY, true);
+                        setTargetOffsetTop(diffY, true, false);
                         mLastY = y;
-                        mSumY+=diffY;
+                        mSumY += diffY;
                         break;
 
                   case MotionEvent.ACTION_UP:
+                        Log.e("mSumY",mSumY+"");
                         mLastY = 0;
+                        animateToStartPosition();
                         break;
 
             }
             return true;
+      }
+
+      private void animateToStartPosition() {
+            mAnimationToStartPosition.reset();
+            mAnimationToStartPosition.setDuration(ANIMATE_TO_START_DURATION);
+            mAnimationToStartPosition.setInterpolator(mDecelerateInterpolator);
+            mAnimationToStartPosition.setAnimationListener(animationListener);
+            mRefreshView.clearAnimation();
+            mRefreshView.startAnimation(mAnimationToStartPosition);
       }
 
       private boolean canChildScrollUp() {
@@ -244,8 +260,8 @@ public class PullToRefreshView extends ViewGroup {
       }
 
 
-      private void setTargetOffsetTop(int offset, boolean requiresUpdate) {
-            // offsetTopAndBottom in view
+      private void setTargetOffsetTop(int offset, boolean requiresUpdate, boolean isAnimation) {
+            // offsetTopAndBottom in view view 里面的这个东西也是一个+=的过程
             mTarget.offsetTopAndBottom(offset);
             // offsetTopAndBottom(abstract method) in BaseRefreshView implements in SunRefreshView (imitate view)
             mBaseRefreshView.offSetTopAndBottom(offset);
@@ -253,9 +269,65 @@ public class PullToRefreshView extends ViewGroup {
             if (requiresUpdate && android.os.Build.VERSION.SDK_INT < 11) {
                   invalidate();
             }
+
+      }
+
+      float lastInterpolated;
+      float suma;
+      private void setTargetOffsetTop(int offset, boolean requiresUpdate, boolean isAnimation,float interpolatedTime){
+
+            float a = (interpolatedTime-lastInterpolated)*offset;
+
+            // offsetTopAndBottom in view view 里面的这个东西也是一个+=的过程
+            mTarget.offsetTopAndBottom((int)(-a));
+            // offsetTopAndBottom(abstract method) in BaseRefreshView implements in SunRefreshView (imitate view)
+            mBaseRefreshView.offSetTopAndBottom((int)(-a));
+            mCurrentOffsetTop = mTarget.getTop();
+            if (requiresUpdate && android.os.Build.VERSION.SDK_INT < 11) {
+                  invalidate();
+            }
+            lastInterpolated = interpolatedTime;
+            suma+=a;
+            Log.e("a",suma+"");
       }
 
       public int getmTotalDragDistance() {
             return mTotalDragDistance;
       }
+
+
+      /**
+       * 这种形式的写法其实就是 Animation的子类
+       */
+      private Animation mAnimationToStartPosition = new Animation() {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                  //  super.applyTransformation(interpolatedTime, t);
+                  moveToStart(interpolatedTime);
+            }
+      };
+
+      private void moveToStart(float interpolatedTime) {
+          //  Log.e("taaaaaaaaag", interpolatedTime + "");
+            setTargetOffsetTop((int) (mSumY * interpolatedTime), true, true,interpolatedTime);
+      }
+
+
+      private Animation.AnimationListener animationListener = new Animation.AnimationListener() {
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                  mSumY = 0;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+      };
 }
