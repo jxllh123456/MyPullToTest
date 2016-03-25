@@ -43,6 +43,8 @@ public class PullToRefreshView extends ViewGroup {
       private BaseDrawable mBaseRefreshView;
 
       private int mTargetPaddingTop;
+
+      
       private int mTargetPaddingBottom;
 
 
