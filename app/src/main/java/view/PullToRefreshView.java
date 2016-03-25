@@ -47,7 +47,7 @@ public class PullToRefreshView extends ViewGroup {
       private int mTargetPaddingRight;
       private int mTargetPaddingLeft;
 
-      
+
 
       /**
        * being used in onTouchEvent \ onInteceptTouchEvent
