@@ -52,7 +52,6 @@ public class PullToRefreshView extends ViewGroup {
       private int mTargetPaddingLeft;
 
 
-
       /**
        * being used in onTouchEvent \ onInteceptTouchEvent
        */
@@ -131,7 +130,7 @@ public class PullToRefreshView extends ViewGroup {
             int heightOff = (int) (width * .55f);
 
             //mTarget 就是要下拉刷新的ListView
-            mTarget.layout(left, top , left + width - right, top + height - bottom);//这里的上\下加上 heightOff可以让mTarget在下面
+            mTarget.layout(left, top, left + width - right, top + height - bottom);//这里的上\下加上 heightOff可以让mTarget在下面
             // mRefreshView是ListView上面的那个自定义Drawable
             mRefreshView.layout(left, top, left + width - right, top + height - bottom);
       }
@@ -192,7 +191,7 @@ public class PullToRefreshView extends ViewGroup {
       }
 
 
-      private int mLastX;
+      private int mSumY;
       private int mLastY;
 
       @Override
@@ -208,11 +207,17 @@ public class PullToRefreshView extends ViewGroup {
                   case MotionEvent.ACTION_MOVE:
                         int diffY = 0;
                         if (mLastY != 0) diffY = y - mLastY;
-                        //
+                        //实际上没有用到
                         mBaseRefreshView.setPercent(diffY * DRAG_RATE_INSIDE, true);
-                        //改变mTop
-                        setTargetOffsetTop((diffY), true);
+                        //改变mTop,三目运算符的意思是:如果大于一定的距离就不再能拖动
+                        int drawableHeight = (int) (getMeasuredWidth() * 0.35f);
+                      //  Log.e("drawableHeight", drawableHeight + "::::" + diffY);
+                        if (mSumY > drawableHeight) {
+                              diffY = 0;
+                        }
+                        setTargetOffsetTop(diffY, true);
                         mLastY = y;
+                        mSumY+=diffY;
                         break;
 
                   case MotionEvent.ACTION_UP:
