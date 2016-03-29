@@ -41,7 +41,7 @@ public class PullToRefreshView extends ViewGroup {
 
       private static final int ANIMATE_TO_START_DURATION = 1000;
       private int mTouchSlop;
-      private int mTotalDragDistance;
+   //   private int mTotalDragDistance;
 
       private Interpolator mDecelerateInterpolator;
       private BaseDrawable mBaseRefreshView;
@@ -80,7 +80,6 @@ public class PullToRefreshView extends ViewGroup {
             // slop 溢出,溅出
             //Distance in pixels a touch can wander before we think the user is scrolling
             mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-            mTotalDragDistance = Utils.convertDpToPixel(context, DRAG_MAX_DISTANCE);
 
             setWillNotDraw(false);
             ViewCompat.setChildrenDrawingOrderEnabled(this, true);
@@ -98,9 +97,6 @@ public class PullToRefreshView extends ViewGroup {
 
       public PullToRefreshView(Context context, AttributeSet attrs, int defStyleAttr) {
             super(context, attrs, defStyleAttr);
-      }
-
-      private void init() {
       }
 
       @Override
@@ -177,7 +173,7 @@ public class PullToRefreshView extends ViewGroup {
             switch (ev.getAction()) {
 
                   case MotionEvent.ACTION_DOWN:
-                        setTargetOffsetTop(0, true, false);
+                        setTargetOffsetTop(0, true);
                         mIsBeingDragged = false;
                         downX = (int) ev.getX();
                         downY = (int) ev.getY();
@@ -195,12 +191,14 @@ public class PullToRefreshView extends ViewGroup {
       }
 
 
+      // 在一次滑动行为中,手指一共移动的距离
       private int mSumY;
       private int mLastY;
-      private int drawableHeight;
 
       @Override
       public boolean onTouchEvent(MotionEvent event) {
+
+            int drawableHeight;
 
             int y = (int) event.getY();
 
@@ -212,15 +210,11 @@ public class PullToRefreshView extends ViewGroup {
                   case MotionEvent.ACTION_MOVE:
                         int diffY = 0;
                         if (mLastY != 0) diffY = y - mLastY;
-                        //实际上没有用到
-                        mBaseRefreshView.setPercent(diffY * DRAG_RATE_INSIDE, true);
-                        //改变mTop,三目运算符的意思是:如果大于一定的距离就不再能拖动
                         drawableHeight = (int) (getMeasuredWidth() * 0.35f);
-                        //  Log.e("drawableHeight", drawableHeight + "::::" + diffY);
                         if (mSumY > drawableHeight) {
                               diffY = 0;
                         }
-                        setTargetOffsetTop(diffY, true, false);
+                        setTargetOffsetTop(diffY, true);
                         mLastY = y;
                         mSumY += diffY;
                         break;
@@ -228,6 +222,7 @@ public class PullToRefreshView extends ViewGroup {
                   case MotionEvent.ACTION_UP:
                         Log.e("mSumY",mSumY+"");
                         mLastY = 0;
+                        // 动画的执行是异步的
                         animateToStartPosition();
                         break;
 
@@ -260,7 +255,12 @@ public class PullToRefreshView extends ViewGroup {
       }
 
 
-      private void setTargetOffsetTop(int offset, boolean requiresUpdate, boolean isAnimation) {
+      /**
+       * 下拉的时候用的
+       * @param offset
+       * @param requiresUpdate
+       */
+      private void setTargetOffsetTop(int offset, boolean requiresUpdate) {
             // offsetTopAndBottom in view view 里面的这个东西也是一个+=的过程
             mTarget.offsetTopAndBottom(offset);
             // offsetTopAndBottom(abstract method) in BaseRefreshView implements in SunRefreshView (imitate view)
@@ -273,26 +273,31 @@ public class PullToRefreshView extends ViewGroup {
       }
 
       float lastInterpolated;
-      float suma;
-      private void setTargetOffsetTop(int offset, boolean requiresUpdate, boolean isAnimation,float interpolatedTime){
+      //调试用的
+      int suma;
+      /**
+       * 反弹回去的时候用的,被循环调用的一个方法,
+       * @param offset
+       * @param requiresUpdate
+       * @param interpolatedTime 从 0到1 不断变化的值,
+       */
+      private void setTargetOffsetTop(int offset, boolean requiresUpdate,float interpolatedTime){
 
             float a = (interpolatedTime-lastInterpolated)*offset;
-
+            // 因为lastInterpolated需要清0,但是在animation end 的时候清零不管用,所以,无奈这样写
+            if(a<0){
+                  a = 0;
+            }
             // offsetTopAndBottom in view view 里面的这个东西也是一个+=的过程
-            mTarget.offsetTopAndBottom((int)(-a));
+            mTarget.offsetTopAndBottom(-(Math.round(a)));
             // offsetTopAndBottom(abstract method) in BaseRefreshView implements in SunRefreshView (imitate view)
-            mBaseRefreshView.offSetTopAndBottom((int)(-a));
+            mBaseRefreshView.offSetTopAndBottom(-(Math.round(a)));
             mCurrentOffsetTop = mTarget.getTop();
             if (requiresUpdate && android.os.Build.VERSION.SDK_INT < 11) {
                   invalidate();
             }
             lastInterpolated = interpolatedTime;
-            suma+=a;
-            Log.e("a",suma+"");
-      }
-
-      public int getmTotalDragDistance() {
-            return mTotalDragDistance;
+            suma+=Math.round(a);
       }
 
 
@@ -302,22 +307,18 @@ public class PullToRefreshView extends ViewGroup {
       private Animation mAnimationToStartPosition = new Animation() {
             @Override
             protected void applyTransformation(float interpolatedTime, Transformation t) {
-                  //  super.applyTransformation(interpolatedTime, t);
                   moveToStart(interpolatedTime);
             }
       };
 
       private void moveToStart(float interpolatedTime) {
-          //  Log.e("taaaaaaaaag", interpolatedTime + "");
-            setTargetOffsetTop((int) (mSumY * interpolatedTime), true, true,interpolatedTime);
+            setTargetOffsetTop(mSumY, true,interpolatedTime);
       }
 
 
       private Animation.AnimationListener animationListener = new Animation.AnimationListener() {
-
             @Override
             public void onAnimationStart(Animation animation) {
-
             }
 
             @Override

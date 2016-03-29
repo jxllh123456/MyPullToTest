@@ -10,8 +10,9 @@ import android.telecom.Call;
 /**
  * 实现了Animatable,但是并没有override 里面的方法
  * Created by summer on 16/3/11.
+ * 删除掉了 implements Drawable.CallBack ,注掉了方法体
  */
-public abstract class BaseDrawable extends Drawable implements Drawable.Callback, Animatable {
+public abstract class BaseDrawable extends Drawable implements Animatable {
 
 
       public BaseDrawable() {
@@ -22,36 +23,34 @@ public abstract class BaseDrawable extends Drawable implements Drawable.Callback
        *
        * @param who
        */
-      @Override
+     // @Override
       public void invalidateDrawable(Drawable who) {
-            final Callback callback = getCallback();
-            if (callback != null) {
-                  callback.invalidateDrawable(this);
-            }
+//            final Callback callback = getCallback();
+//            if (callback != null) {
+//                  callback.invalidateDrawable(this);
+//            }
       }
 
-      @Override
+     // @Override
       public void scheduleDrawable(Drawable who, Runnable what, long when) {
-            final Callback callback = getCallback();
-            if (callback != null) {
-                  callback.scheduleDrawable(this, what, when);
-            }
+//            final Callback callback = getCallback();
+//            if (callback != null) {
+//                  callback.scheduleDrawable(this, what, when);
+//            }
       }
 
-      @Override
+    //  @Override
       public void unscheduleDrawable(Drawable who, Runnable what) {
-            final Callback callback = getCallback();
-            if (callback != null) {
-                  callback.unscheduleDrawable(this, what);
-            }
+//            final Callback callback = getCallback();
+//            if (callback != null) {
+//                  callback.unscheduleDrawable(this, what);
+//            }
       }
 
 
 
-      public abstract void setPercent(float percent,boolean invalidate);
+   //   public abstract void setPercent(float percent,boolean invalidate);
       public abstract void offSetTopAndBottom(int offSet);
-
-
 
 
       @Override

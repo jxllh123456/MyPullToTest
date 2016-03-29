@@ -41,7 +41,6 @@ public class SunRefreshView extends BaseDrawable implements Animatable {
                         initView(pullToRefreshView.getWidth());
                   }
             });
-            //  initView(pullToRefreshView.getWidth());
       }
 
       int parentWidth;
@@ -65,18 +64,6 @@ public class SunRefreshView extends BaseDrawable implements Animatable {
 
             mSun = BitmapFactory.decodeResource(pullToRefreshView.getContext().getResources(), R.drawable.sun, options);
             mSun = Bitmap.createScaledBitmap(mSun, mSunSize, mSunSize, true);
-      }
-
-      /**
-       * from super class
-       *
-       * @param percent
-       * @param invalidate
-       */
-      @Override
-      public void setPercent(float percent, boolean invalidate) {
-            mPercent += percent;
-            if (invalidate) this.invalidateSelf();
       }
 
       /**
